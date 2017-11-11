@@ -1,4 +1,3 @@
-// This code should help you get started with your balancing robot.
 // The code performs the following steps
 // Calibration phase:
 //  In this phase the robot should be stationary lying on the ground.
@@ -41,12 +40,15 @@ extern int32_t speedRight;
 extern int32_t distanceLeft;
 extern int32_t distanceRight;
 float int_left, int_right, omega_int;
+float int_v_left, int_v_right;
 float Kp = 500;
 float Ki = 5000;
 float KIomega = -40;
 float KPomega = -6;
-float target_speed_R = -0.1;
-float target_speed_L = 0.1;
+float target_speed_R, target_speed_L;
+float k = -.1;
+float pos = 0;
+float start_time;
 float beginStable;
 
 void balanceDoDriveTicks();
@@ -73,6 +75,7 @@ void setup()
   angle_accum = 0;
   ledGreen(0);
   ledYellow(0);
+  
 }
 
 extern int16_t angle_prev;
@@ -121,7 +124,7 @@ void loop()
   static float error_ = 0;      // this is the accumulated velocity error in m/s
   static float error_left_accum = 0;      // this is the accumulated velocity error in m/s
   static float error_right_accum = 0;      // this is the accumulated velocity error in m/s
-
+  
   cur_time = millis();                   // get the current time in miliseconds
 
 
@@ -149,12 +152,17 @@ void loop()
   }
 
   float delta_t = (cur_time - prev_time) / 1000.0;
-
+  
   // handle the case where this is the first time through the loop
   if (prev_time == 0) {
     delta_t = 0.01;
   }
-
+  
+  if (start_counter > 0){
+    pos = pos+.02*delta_t;
+  }
+  Serial.println(" ");
+  Serial.println(pos);
   // every UPDATE_TIME_MS, check if angle is within +- 3 degrees and we haven't set the start flag yet
   if (cur_time - prev_time > UPDATE_TIME_MS && angle > -3000 && angle < 3000 && !armed_flag)
   {
@@ -169,7 +177,7 @@ void loop()
   }
 
   // angle is in millidegrees, convert it to radians and subtract the desired theta
-  angle_rad = ((float)angle) / 1000 / 180 * 3.14159 - del_theta;
+  angle_rad = ((float)angle) / 1000 / 180 * 3.14159 - (k*(((int_v_left + int_v_right)/2.)-pos));
 
   // only start when the angle falls outside of the 3.0 degree band around 0.  This allows you to let go of the
   // robot before it starts balancing
@@ -190,9 +198,6 @@ void loop()
     float vL = METERS_PER_CLICK * speedLeft / delta_t;
     float vR = METERS_PER_CLICK * speedRight / delta_t;
 
-    //set angular velocity based on omega and distance of wheels
-    float w = 2;
-    float r = .1 / 2;
 
     // Set angle information
     omega_int = omega_int - angle_rad * delta_t;
@@ -201,34 +206,38 @@ void loop()
 
     float PWM_left, PWM_right;
     bool flagRotate = true;
-
-    if (vL + vR < .05 && vL + vR > -0.05 && millis() - beginStable > 3000) {
-      if (flagRotate = false) {
-        int_left = 0;
-        int_right = 0;
-      }
-      Serial.println(0);
-      int_left = int_left + delta_t * (target_speed_L - vL - w * r);
-      int_right = int_right + delta_t* (target_speed_R - vR + w * r);
-      // set PWM_left and PWM_right here
-      PWM_left = Kp * (target_speed_L - vL - w * r) + Ki * int_left;
-      PWM_right = Kp * (target_speed_R - vR + w * r) + Ki * int_right;
-      flagRotate = true;
-    } else {
-      Serial.println(1);
-      if (flagRotate = true) {
-        int_left = 0;
-        int_right = 0;
-        beginStable = millis();
-      }
-      int_left = int_left + delta_t * (target_speed_L - vL);
-      int_right = int_right + delta_t* (target_speed_R - vR);
-      // set PWM_left and PWM_right here
-      PWM_left = Kp * (target_speed_L - vL) + Ki * int_left;
-      PWM_right = Kp * (target_speed_R - vR) + Ki * int_right;
-      flagRotate = false;
-    }
-
+    /*
+        if (vL + vR < .05 && vL + vR > -0.05 && millis() - beginStable > 3000) {
+          if (flagRotate = false) {
+            int_left = 0;
+            int_right = 0;
+          }
+          Serial.println(0);
+    */
+    int_v_left = int_v_left + delta_t*vL;
+    int_v_right = int_v_right + delta_t*vR;
+    int_left = int_left + delta_t * (target_speed_L - vL);
+    int_right = int_right + delta_t* ((target_speed_R - vR));
+    
+    // set PWM_left and PWM_right here
+    PWM_left = Kp * (target_speed_L - vL) + Ki * int_left;
+    PWM_right = Kp * (target_speed_R - vR) + Ki * int_right;
+    /*      flagRotate = true;
+        } else {
+          Serial.println(1);
+          if (flagRotate = true) {
+            int_left = 0;
+            int_right = 0;
+            beginStable = millis();
+          }
+          int_left = int_left + delta_t * (target_speed_L - vL);
+          int_right = int_right + delta_t* (target_speed_R - vR);
+          // set PWM_left and PWM_right here
+          PWM_left = Kp * (target_speed_L - vL) + Ki * int_left;
+          PWM_right = Kp * (target_speed_R - vR) + Ki * int_right;
+          flagRotate = false;
+        }
+    */
 
 
     // if the robot is more than 45 degrees, shut down the motor
