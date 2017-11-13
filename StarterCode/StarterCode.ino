@@ -179,7 +179,7 @@ void loop()
       break;
     case 5:
       pos = 0;
-      w = 3.;
+      w = 2.5;
       break;
     case 6:
       pos = 0;
