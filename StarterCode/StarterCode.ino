@@ -147,25 +147,19 @@ void loop()
   //Set the timing for each move
   if (start_counter > 0) {
     danceTime = (millis() - danceStart) / 1000.;
-    Serial.println(pos);
     if (danceTime < 4) {
       switchItUp = 0;
     } else if (danceTime > 4 && danceTime < 10.) {
       switchItUp = 3;
-    } else if (danceTime > 10. && danceTime < 20.) {
+    } else if (danceTime > 10. && danceTime < 18.) {
       switchItUp = 4;
     } else if (danceTime > 28. && danceTime < 33.) {
       switchItUp = 5;
-    } else if (danceTime > 35. && danceTime < 40.) {
+    } else if (danceTime > 35. && danceTime < 42.) {
       switchItUp = 6;
     } else{
       switchItUp = 0;
     }
-    
-    Serial.print(switchItUp);
-    Serial.print(" ");
-    Serial.print(danceTime);
-    Serial.print(" ");
   }
   switch (switchItUp) {
     case 1:
@@ -189,7 +183,7 @@ void loop()
       break;
     case 6:
       pos = 0;
-      w = -2.5;
+      w = -3;
       break;
     default:
       pos = pos;
@@ -249,6 +243,15 @@ void loop()
     PWM_left = Kp * (target_speed_L - vL) + Ki * int_left;
     PWM_right = Kp * (target_speed_R - vR) + Ki * int_right;
 
+
+    
+    Serial.print(target_speed_L);
+    Serial.print(" ");
+    Serial.print(target_speed_R);
+    Serial.print(" ");
+    Serial.print(vR);
+    Serial.print(" ");
+    Serial.println(vL);
     // if the robot is more than 45 degrees, shut down the motor
     if (start_flag && fabs(angle_rad) > FORTY_FIVE_DEGREES_IN_RADIANS) // TODO: this was set to angle < -0.78... I changd it to angle_rad
     {
