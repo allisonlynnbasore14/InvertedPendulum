@@ -1,0 +1,15 @@
+Motori = Kpv + (Ki/s);
+Motorv = a*b/(s + a);
+Anglei = Kpw + (Kiw/s);
+Anglev = s/((l*s^2) - (g));
+GMotor = Factor[Motori* Motorv/(1 + Motori* Motorv)];
+GPlant = Factor[GMotor* Anglev];
+GTotal = Factor[Anglei*GPlant /(1 + Anglei*GPlant )]
+params = {g -> 98/10, l -> 1/5, a -> 10, b -> 1/400, Kpv -> 400, 
+   Ki -> 6800};
+output := Values[NSolve[Denominator[GTotal] == 0, s] /. params]
+
+Manipulate[
+ ListPlot[ReIm[output /. {Kpw -> Kp, Kiw -> Ki}], 
+  PlotRange -> {{-30, 30}, {-30, 30}}, 
+  AxesLabel -> {"Re", "Im"}], {Kp, 0, -10}, {Ki, 0, -50}]
