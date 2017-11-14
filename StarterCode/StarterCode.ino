@@ -1,4 +1,4 @@
-
+//Include packages for control of Balboa
 #include <Balboa32U4.h>
 #include <Wire.h>
 #include <LSM6.h>
@@ -9,6 +9,7 @@
 #define MAX_SPEED 0.75  // m/s
 #define FORTY_FIVE_DEGREES_IN_RADIANS 0.78
 
+//Initialize a variety of paramters
 extern int32_t angle_accum;
 extern int32_t speedLeft;
 extern int32_t driveLeft;
@@ -30,7 +31,6 @@ float start_time;
 float beginStable;
 float w = 0;
 float r = .05;
-
 void balanceDoDriveTicks();
 
 extern int32_t displacement;
